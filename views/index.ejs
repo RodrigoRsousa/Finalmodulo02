@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="/img/favicon.png" rel="icon" type="image/x-icon" />
+    <!-- Favicon by: https://www.flaticon.com/authors/becris -->
+    <title>Recipes Arround the World</title>
+</head>
+
+<body>
+  <nav>
+    <ul>
+      <li>
+        <a href="/about">About Us!</a>
+      </li>
+      <li>
+        <a href="/form">New Recipe</a>
+      </li>
+    </ul>
+  </nav>
+
+  <section id="example" class="message-holder">
+    <% if(message != "") {  %>
+      <section id="message">
+        <p><%= message %></p><span id="close">&times;</span>
+      </section>
+    <% }  %>
+  </section>
+
+  <section class="card-container">
+    <% menu.forEach((menu, find) => { %>
+    <section class="card u-clearfix">
+      <img src="<%= menu.recipe_image_url %>" alt="" class="card-media"/>
+      <section class="card-body">
+        <h2 class="card-title"><%= menu.recipe_name %></h2>
+        <span class="card-description subtle"><%= menu.recipe_history %></span>
+        <a href="/details/<%= menu.recipe_id %>" ><section class="card-read">Recipe Details</a></section>
+    </section>
+  </section>
+  <% }) %>
+
+  <script src="/js/script.js"></script>
+</body>
+</html>
