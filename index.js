@@ -139,6 +139,7 @@ app.get('/delete/:id', async (req, res) => {
 	await menu.destroy(); 
 	message = 'Recipe successfully removed';
 	
+	
 	res.redirect('/', );
 });
 
