@@ -32,4 +32,3 @@ const Filme = database.define("filmes", {
 module.exports = Filme;
 
 
-// filmes = [{id: 1, nome: "Senhor dos Anéis: As Duas Torres", descricao: "Segunda parte da trilogia", imagem: "https://i.pinimg.com/originals/e5/e8/cf/e5e8cfc267a11c8ae6ba728b4537543f.jpg"}, {id: 2, nome: "Jurassic Park", descricao: "Um filme de dinossauros maravilhoso", imagem: "https://i.pinimg.com/474x/0e/f4/99/0ef499dc3f429a3b639ddace98eb7134.jpg"}]
