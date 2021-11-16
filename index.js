@@ -1,151 +1,155 @@
-require('dotenv').config();
-
-const express = require('express');
+require('dotenv').config()
+const express = require("express");
 const app = express();
-const db = require('./database');
-const worldMenu = require ('./models');
-const path = require('path');
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000; // Const para armanezar a porta do servidor
+const path = require("path");
 
-let message = '';
+app.set("view engine", "ejs");
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded());
 
-app.set('view engine', 'ejs');
+let message = "";
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({extended:true}));
+// Esse é o responsável por trazer os dados.
+// Ele vai chamar os módulos da modelo e database para fazer a conexão e trazer
+// o objeto com todas as informações que precisamos.
+// Por isso que em todas as rotas que trabalhamos com nosso DB, vamos nos referir ao "Filmes"
+// Atenção com a letra maiúscula!!!!!
+const Filme = require("./models/filme");
 
-app.get('/', async (req,res) => {
-	const menu = await worldMenu.findAll();
-	setTimeout(() => {
-        message = '';
-      }, 1000);
-	res.render('index.ejs', { menu : menu, message});
+
+
+// R (Read) do CRUD - É aqui que vou LER os dados passados pelo banco
+app.get("/", async (req, res) => {
+  // Aqui estou pegando todas as entradas de "Filmes" e guardando em "filmes"
+  // Criando uma lista de objetos
+  const filmes = await Filme.findAll(); //find all = procurar tudo
+
+  // Renderizo minha página passando como variável o filmes que acabei de criar
+  // Ou seja, estou passando todos os dados puxados do BD
+  res.render("index", {
+    filmes, message
+  });
 });
 
-app.get('/form', (req,res) => {
-	res.render('form');
+
+// Read de uma entrada específica
+app.get("/detalhes/:id", async (req, res) => { //O id definido aqui na rota é passado pelo meu HTML quando clico no link
+  //Pegando uma entrada específica no banco (passada pelo ID) e construindo um objeto 
+  //Aqui é apenas um objeto, não uma lista como na rota principal.
+  const filme = await Filme.findByPk(req.params.id); //Find By PK - Procurar pela PK
+
+  res.render("detalhes", {
+    filme,
+  });
 });
 
-app.post('/form', async (req, res) => {
-	const { 
-		recipe_name, 
-		recipe_cuisine, 
-		recipe_history,
-		recipe_ingredients,
-		recipe_prep_method, 
-		recipe_image_url 
-	} = req.body;
 
-	if (!recipe_name) {
-		res.render('/form', {
-			message : 'Recipe Name is Required'
-		});
-	}
-
-	if (!recipe_cuisine) {
-		res.render('/form', {
-			message : 'Recipe Origin is Required',
-		});
-	}
-
-	if (!recipe_history) {
-		res.render('/form', {
-			message : 'Recipe History is Required',
-		});
-	}
-
-	if (!recipe_ingredients) {
-		res.render('/form', {
-			message : 'Recipe Ingredients is Required',
-		});
-	}
-
-	if (!recipe_prep_method) {
-		res.render('/form', {
-			message : 'Recipe Prep Method is Required',
-		});
-	}
-
-	if (!recipe_image_url) {
-		res.render('/form', {
-			message : 'Recipe Pic is Required',
-		});
-	}
-
-	try {
-		const menu = await worldMenu.create({
-			recipe_name: recipe_name,
-			recipe_cuisine: recipe_cuisine, 
-			recipe_history : recipe_history,
-			recipe_ingredients : recipe_ingredients,
-			recipe_prep_method : recipe_prep_method,
-			recipe_image_url : recipe_image_url
-		}) 
-		message = 'Recipe successfully created';
-
-	res.redirect('/');  
-	} catch (err) {    
-		console.log(err);    
-		
-		res.redirect('/', {      
-		message : 'We Have a Problem!',    
-	});  
-}});
-
-
-app.get('/details/:id', async (req, res) => {  
-	const menu = await worldMenu.findByPk(req.params.id);  
-	res.render('details.ejs', { menu,  });
+app.get("/criar", (req, res) => {
+  res.render("criar", {message});
 });
 
-app.get('/edit/:id', async (req, res) => {
-    const menu = await worldMenu.findByPk(req.params.id);
-    res.render('edit.ejs', { menu : menu, });
+
+// C (Create) do meu CRUD - Aqui eu vou criar uma entrada nova no meu banco
+app.post("/criar", async (req, res) => {
+
+  const { nome, descricao, imagem } = req.body;
+
+  if (!nome) {
+    res.render("criar", {
+      message: "Nome é obrigatório",
+    });
+  }
+
+  else if (!imagem) {
+    res.render("criar", {
+      message: "Imagem é obrigatório",
+    });
+  }
+
+  else {
+    try {
+      const filme = await Filme.create({
+        nome,
+        descricao,
+        imagem,
+      });
+
+      res.redirect("/");
+    } catch (err) {
+      console.log(err);
+
+      res.render("criar", {
+        message: "Ocorreu um erro ao cadastrar o Filme!",
+      });
+    }
+  }
 });
 
-app.post('/edit/:id', async (req,res) =>{
-    const menu = await worldMenu.findByPk(req.params.id);
-    const { 
-		recipe_name, 
-		recipe_cuisine, 
-		recipe_history,
-		recipe_ingredients,
-		recipe_prep_method, 
-		recipe_image_url 
-	} = req.body;
-    
-    menu.recipe_name = recipe_name;
-	menu.recipe_cuisine = recipe_cuisine;
-	menu.recipe_history = recipe_history;
-	menu.recipe_ingredients = recipe_ingredients;
-	menu.recipe_prep_method = recipe_prep_method; 
-	menu.recipe_image_url = recipe_image_url;
+// Embora a rota seja "editar", nesse momento, no GET, eu estou apenas pegando os dados
+// de uma entrada para serem editados, por isso ainda não é um UPDATE, é um READ.
+app.get("/editar/:id", async (req, res) => {
+  const filme = await Filme.findByPk(req.params.id);
 
-    await menu.save();
-	message = 'Recipe successfully edited';
+  if (!filme) {
+    res.render("editar", {
+      filme,
+      message: "Filme não encontrado!",
+    });
+  }
 
-    res.redirect('/');
+  res.render("editar", {
+    filme, message
+  });
 });
 
-app.get('/delete/:id', async (req, res) => {  
-	const menu = await worldMenu.findByPk(req.params.id);  
-	
-	if (!menu) {    
-		res.render('/delete/:id', {      
-			message: 'Recipe not Found!',    
-		});
-	}  
-		
-	await menu.destroy(); 
-	message = 'Recipe successfully removed';
-	
-	
-	res.redirect('/', );
+//U (Update) do meu CRUD - Aqui é onde eu faço a atualização (edição) dos dados de uma entrada
+app.post("/editar/:id", async (req, res) => {
+  const filme = await Filme.findByPk(req.params.id);
+
+  const { nome, descricao, imagem } = req.body;
+
+  filme.nome = nome;
+  filme.descricao = descricao;
+  filme.imagem = imagem;
+
+  const filmeEditado = await filme.save();
+
+  res.render("editar", {
+    filme: filmeEditado,
+    message: "Filme editado com sucesso!",
+  });
 });
 
-app.get('/about' , (req,res) => {
-	res.render('about.ejs', )
-}); 
 
-db.connected();
-app.listen(port, () => console.log(`Servidor rodando em http://localhost:${port}`));
+app.get("/deletar/:id", async (req, res) => {
+  const filme = await Filme.findByPk(req.params.id);
+
+  if (!filme) {
+    res.render("deletar", {
+      filme,
+      message: "Filme não encontrado!",
+    });
+  }
+
+  res.render("deletar", {
+    filme, message
+  });
+});
+
+
+app.post("/deletar/:id", async (req, res) => {
+  const filme = await Filme.findByPk(req.params.id);
+
+  if (!filme) {
+    res.render("deletar", {
+      mensagem: "Filme não encontrado!",
+    });
+  }
+
+  await filme.destroy();
+
+  res.redirect("/");
+});
+
+app.listen(port, () => console.log(`Servidor rodando em http://localhost:${port}`))
