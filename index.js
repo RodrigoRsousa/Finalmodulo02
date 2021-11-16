@@ -28,9 +28,9 @@ app.get("/", async (req, res) => {
 
 
 
-app.get("/detalhes/:id", async (req, res) => { //O id definido aqui na rota é passado pelo meu HTML quando clico no link
+app.get("/detalhes/:id", async (req, res) => { 
   
-  const filme = await Filme.findByPk(req.params.id); //Find By PK - Procurar pela PK
+  const filme = await Filme.findByPk(req.params.id); 
 
   res.render("detalhes", {
     filme,
