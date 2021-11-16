@@ -1,6 +1,16 @@
+// Aqui é onde farei a conexão ao meu banco de dados.
 
-const { Sequelize } = require('sequelize');
+const Sequelize = require("sequelize");
 
+// Aqui é feita a conexão ao meu banco local
+// const sequelize = new Sequelize(process.env.DB_BASE, process.env.DB_USER,process.env.DB_PASS, {
+//   host:  process.env.DB_HOST,
+//   port: process.env.DB_PORT,
+//   dialect: 'postgres'
+// });
+
+
+// Aqui faço a conexão com o banco remoto - Heroku
 const sequelize = new Sequelize(process.env.DATABASE_URL, {     
   dialect: 'postgres',
   protocol: 'postgres',     
@@ -12,16 +22,4 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   } 
 }) 
 
-async function connected() {
-  try {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-  }
-}
-
-module.exports = {sequelize, connected};
-
-
-
+module.exports = sequelize;
